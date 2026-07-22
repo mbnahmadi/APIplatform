@@ -1,0 +1,29 @@
+from django.db import models
+from usersapp.models import UserModel
+# Create your models here.
+
+class UploadFileModel(models.Model):
+    class Status(models.TextChoices):
+        PENDIG = 'pending', 'pending'
+        PROCESSING = 'processing', 'processing'
+        COMPLETED = 'completed', 'completed'
+        FAILED = 'failed', 'failed'
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name="uploadfile")
+    file = models.FileField(upload_to='csv_import/%Y/%m/%d/')
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDIG)
+    error_message = models.TextField(blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"File by {self.user.username} at {self.uploaded_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+class UserPointModel(models.Model):
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name="userpoints")
+    name = models.CharField(max_length=100, null=False, blank=False)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    source_file = models.ForeignKey("UploadFileModel", on_delete=models.SET_NULL, null=True, blank=True, related_name="points")
+
+    def __str__(self):
+        return f"{self.name} ({self.latitude}, {self.longitude})"

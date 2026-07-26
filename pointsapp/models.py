@@ -4,13 +4,13 @@ from usersapp.models import UserModel
 
 class UploadFileModel(models.Model):
     class Status(models.TextChoices):
-        PENDIG = 'pending', 'pending'
+        PENDING = 'pending', 'pending'
         PROCESSING = 'processing', 'processing'
         COMPLETED = 'completed', 'completed'
         FAILED = 'failed', 'failed'
     user = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name="uploadfile")
     file = models.FileField(upload_to='csv_import/%Y/%m/%d/')
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDIG)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     error_message = models.TextField(blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

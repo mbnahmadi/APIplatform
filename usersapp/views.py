@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from .models import UserModel, ClientProfileModel
-from .serializsers import ClientProfileSerializer
+from .serializers import ClientProfileSerializer
+from .permissions import IsAdminUser
 
 from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
@@ -29,18 +31,24 @@ class LogoutAPIView(APIView):
 class UserCreateView(generics.CreateAPIView):
     queryset = ClientProfileModel.objects.all()
     serializer_class = ClientProfileSerializer
+    permission_classes = [IsAdminUser]
 
 class UserRetreiveView(generics.ListAPIView):
     queryset = ClientProfileModel.objects.all()
     serializer_class = ClientProfileSerializer
+    permission_classes = [IsAdminUser]
+
 
 class UserRetreiveUpdateView(generics.RetrieveUpdateAPIView):
     queryset = ClientProfileModel.objects.all()
     serializer_class = ClientProfileSerializer
+    permission_classes = [IsAdminUser]
+
 
 class UserDeleteView(generics.DestroyAPIView):
     queryset = ClientProfileModel.objects.all()
     serializer_class = ClientProfileSerializer
+    permission_classes = [IsAdminUser]
 
     def perform_destroy(self, instance):
         user = getattr(instance, "user", None)

@@ -46,8 +46,10 @@ INSTALLED_APPS = [
     # apps
     'usersapp.apps.UsersappConfig',
     'pointsapp.apps.PointsappConfig',
-    # drf
-    'drf_yasg'
+    # swagger
+    # 'drf_yasg'
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
 ]
 AUTH_USER_MODEL = 'usersapp.UserModel'
 
@@ -133,17 +135,47 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'API Platform',
+    'DESCRIPTION': 'API Platform',
+    'VERSION': '1.0.0',
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': 'SIDECAR',  # shorthand to use the sidecar instead
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+    # OTHER SETTINGS
+}
 
 REST_FRAMEWORK = {
+
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        # 'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
+    ],
+
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': False,        
     'BLACKLIST_AFTER_ROTATION': True,      
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# Celery Configuration Options
+CELERY_TIMEZONE = 'Asia/Tehran'
+CELERY_TASK_TRACK_STARTED = True
+CELERY_BROKER_URL = 'redis://localhost:6379/10'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/10'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+

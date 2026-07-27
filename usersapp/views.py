@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import UserModel, ClientProfileModel
-from .serializers import ClientProfileSerializer
+from .serializers import ClientProfileSerializer, LogoutSerializer
 from .permissions import IsAdminUser
 
 from rest_framework import status, generics
@@ -10,13 +10,17 @@ from rest_framework.permissions import IsAuthenticated
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+
+from drf_spectacular.utils import extend_schema
 # Create your views here.
 
+@extend_schema(request=LogoutSerializer)
 class LogoutAPIView(APIView):
     def post(self, request):
-        refresh_token  = request.data.get('refresh')
-        if not refresh_token:
-            return Response({"detail":"Refresh token required."}, status=status.HTTP_400_BAD_REQUEST)  
+        serializer = LogoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        refresh_token  = serializer.validated_data["refresh"]
         
         try:
             # the library can decode and validate that specific token
@@ -25,7 +29,6 @@ class LogoutAPIView(APIView):
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except (InvalidToken, TokenError) as e:
             return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class UserCreateView(generics.CreateAPIView):
@@ -55,3 +58,9 @@ class UserDeleteView(generics.DestroyAPIView):
         instance.delete()
         if user:
             user.delete()
+
+# ================ client ================
+class ClientProfileView(generics.ListAPIView):
+    serializer_class = ClientProfileSerializer
+    def get_queryset(self):
+        return ClientProfileModel.objects.filter(user=self.request.user)

@@ -8,10 +8,10 @@ User = get_user_model()
 
 
 @shared_task
-def process_csv_file_task(file_id, user_id):
+def process_csv_file_task(file_id):
     try:
         upload_instance = UploadFileModel.objects.get(id=file_id)
-        user = User.objects.get(id=user_id)
+        # uploaded_by = upload_instance.uploaded_by
 
         upload_instance.status = UploadFileModel.Status.PROCESSING
         upload_instance.save()
@@ -23,23 +23,24 @@ def process_csv_file_task(file_id, user_id):
 
         io_string = io.StringIO(file_data)
         reader = csv.DictReader(io_string)
-        print(reader)
+        # print(reader)
 
         points_to_create = []
 
         for row in reader:
-            print(row)
+            # print(row)
             name = row.get('name') or row.get('Name')
             lat = row.get('lat') or row.get('latitude')
             lon = row.get('lon') or row.get('longitude')
-            print(name, lat, lon)
+            # print(name, lat, lon)
 
             if not name or lat is None or lon is None:
                 return False
 
             points_to_create.append(
                 UserPointModel(
-                    user=user,
+                    # uploaded_by=upload_instance.uploaded_by,
+                    owner = upload_instance.owner,
                     name=name.strip(),
                     latitude=float(lat),
                     longitude=float(lon),
@@ -49,7 +50,7 @@ def process_csv_file_task(file_id, user_id):
 
         if points_to_create:
             UserPointModel.objects.bulk_create(points_to_create)
-        print(len(points_to_create))
+        # print(len(points_to_create))
 
         upload_instance.status = UploadFileModel.Status.COMPLETED
         upload_instance.save()

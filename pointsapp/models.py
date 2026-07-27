@@ -8,18 +8,19 @@ class UploadFileModel(models.Model):
         PROCESSING = 'processing', 'processing'
         COMPLETED = 'completed', 'completed'
         FAILED = 'failed', 'failed'
-    user = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name="uploadfile")
+    uploaded_by = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name="uploadfile")
+    owner = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     file = models.FileField(upload_to='csv_import/%Y/%m/%d/')
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     error_message = models.TextField(blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"File by {self.user.username} at {self.uploaded_at.strftime('%Y-%m-%d %H:%M')}"
+        return f"File by {self.uploaded_by.username} at {self.uploaded_at.strftime('%Y-%m-%d %H:%M')}"
 
 
 class UserPointModel(models.Model):
-    user = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name="userpoints")
+    owner = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name="userpoints")
     name = models.CharField(max_length=100, null=False, blank=False)
     latitude = models.FloatField()
     longitude = models.FloatField()

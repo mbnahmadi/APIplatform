@@ -1,11 +1,15 @@
 from rest_framework import serializers
 from .models import UserModel, ClientProfileModel
 
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     class Meta:
         model = UserModel
-        fields = ["username", "password", "email", "first_name", "last_name", "role", "is_active"]
+        fields = ["id", "username", "password", "email", "first_name", "last_name", "role", "is_active"]
 
     def create(self, validated_data):
         return UserModel.objects.create_user(

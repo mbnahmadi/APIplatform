@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from .models import UserModel, ClientProfileModel
+from .models import UserModel, ClientProfileModel, APITokenModel
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
@@ -8,11 +11,11 @@ class LogoutSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     class Meta:
-        model = UserModel
+        model = User
         fields = ["id", "username", "password", "email", "first_name", "last_name", "role", "is_active"]
 
     def create(self, validated_data):
-        return UserModel.objects.create_user(
+        return User.objects.create_user(
             username = validated_data["username"],
             password = validated_data["password"],
             email = validated_data["email"],
@@ -21,6 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
             role = validated_data["role"],
             is_active = validated_data["is_active"]
         )
+        
 
 
 class ClientProfileSerializer(serializers.ModelSerializer):
@@ -32,7 +36,7 @@ class ClientProfileSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop("user")
 
-        user_data = UserModel.objects.create_user(
+        user_data = User.objects.create_user(
             username = user_data["username"],
             password = user_data["password"],
             email = user_data["email"],
@@ -63,7 +67,5 @@ class ClientProfileSerializer(serializers.ModelSerializer):
 
 
 
-
-
-
-
+class GenerateAPITokenSerializer(serializers.Serializer):
+    api_token = serializers.CharField(read_only=True)

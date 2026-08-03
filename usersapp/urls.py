@@ -19,11 +19,11 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from .views import LogoutAPIView, UserRetreiveView, UserRetreiveUpdateView, UserDeleteView, UserCreateView, ClientProfileView
+from .views import LogoutAPIView, UserRetreiveView, UserRetreiveUpdateView, UserDeleteView, UserCreateView, ClientProfileView, GenerateAPIToken
 
 urlpatterns = [
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('logout/', LogoutAPIView.as_view(), name='logout'),
 
     path('admin/users/list/', UserRetreiveView.as_view(), name='users-list'),
@@ -31,7 +31,10 @@ urlpatterns = [
     path('admin/users/update/<int:pk>/', UserRetreiveUpdateView.as_view(), name='users-update'),
     path('admin/users/<int:pk>/delete/', UserDeleteView.as_view(), name='users-delete'),
 
-    path('client/profile/', ClientProfileView.as_view(), name='clientprofile'),
+    path('profile/', ClientProfileView.as_view(), name='clientprofile'),
+
+    path('api-token/', GenerateAPIToken.as_view(), name='api-token'),
+
 
 
 ]

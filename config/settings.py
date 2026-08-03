@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-j6-4d=4p4al2wg+7vk+@jlqo7-zi93o!%cirrjp8(9)agui=2w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -179,3 +179,6 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
 
+# API key prefix
+
+API_KEY_PREFIX = "pmo_live_"

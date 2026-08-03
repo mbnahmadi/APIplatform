@@ -1,7 +1,8 @@
 from django.shortcuts import render
-from .models import UserModel, ClientProfileModel
-from .serializers import ClientProfileSerializer, LogoutSerializer
+from .models import UserModel, ClientProfileModel, APITokenModel
+from .serializers import ClientProfileSerializer, LogoutSerializer, GenerateAPITokenSerializer
 from .permissions import IsAdminUser
+from .service.api_token import GenerateApiKeyService
 
 from rest_framework import status, generics
 from rest_framework.response import Response
@@ -60,7 +61,21 @@ class UserDeleteView(generics.DestroyAPIView):
             user.delete()
 
 # ================ client ================
-class ClientProfileView(generics.ListAPIView):
+class ClientProfileView(generics.RetrieveAPIView):
     serializer_class = ClientProfileSerializer
-    def get_queryset(self):
-        return ClientProfileModel.objects.filter(user=self.request.user)
+    # def get_queryset(self):
+    #     return ClientProfileModel.objects.filter(user=self.request.user)
+    def get_object(self):
+        return generics.get_object_or_404(ClientProfileModel, user=self.request.user)
+
+
+# ============= API token =======================
+class GenerateAPIToken(APIView):
+    def post(self, request):
+        key = GenerateApiKeyService(user=request.user)
+        api_key = key.execute()
+
+        # serializer = GenerateAPITokenSerializer(data=api_key)
+        # if serializer.is_valid():
+        return Response(api_key)
+        # return Response({"error": "bad request"})

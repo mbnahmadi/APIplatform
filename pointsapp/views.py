@@ -4,8 +4,9 @@ import io
 from django.shortcuts import render
 from .models import UploadFileModel, UserPointModel
 from .serializers import UploadFileSerializer, PointSerializer
-from usersapp.permissions import IsAdminUser
 from .tasks import process_csv_file_task
+from usersapp.permissions import IsAdminUser
+from usersapp.api_key_authenticate import APIKeyAuthentication
 
 from rest_framework import status, generics
 from rest_framework.response import Response
@@ -75,3 +76,14 @@ class ClientPointView(generics.ListAPIView):
     def get_queryset(self):
         return UserPointModel.objects.filter(owner=self.request.user)
 
+
+
+class WeatherTestView(APIView):
+    authentication_classes = [APIKeyAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({
+            "message": "You are authenticated",
+            "user": request.user.username,
+        })

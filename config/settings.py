@@ -182,3 +182,4 @@ CELERY_RESULT_SERIALIZER = 'json'
 # API key prefix
 
 API_KEY_PREFIX = "pmo_live_"
+AUTHORIZATION_SCHEME = "api_key"

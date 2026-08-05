@@ -50,8 +50,13 @@ class APITokenModel(models.Model):
         prefix = API_KEY_PREFIX
         api_key = prefix + randon_part
         self.token_hash = self.hash_token(api_key)
-        self.save(update_fields=["token_hash"])
+        self.save() 
         return api_key
+
+    @classmethod
+    def get_by_api_key(cls, api_key):
+        hashed_token = cls.hash_token(api_key)
+        return cls.objects.filter(token_hash=hashed_token).first()
 
 
 

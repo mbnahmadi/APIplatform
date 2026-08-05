@@ -15,7 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path
-from .views import DocumentListCreateView, PointListView, PointCreateView, PointdeleteView, PointRetrieveUpdateView, ClientPointView
+from .views import (DocumentListCreateView, 
+                    PointListView, 
+                    PointCreateView, 
+                    PointdeleteView, 
+                    PointRetrieveUpdateView, 
+                    ClientPointView,
+                    WeatherTestView
+)
 
 urlpatterns = [
     path("admin/points/upload/", DocumentListCreateView.as_view(), name="uploadfile"),
@@ -24,5 +31,8 @@ urlpatterns = [
     path("admin/points/delete/user/<int:user>/point/<int:pk>/", PointdeleteView.as_view(), name="pointdelete"),
     path("admin/points/update/user/<int:user>/point/<int:pk>/", PointRetrieveUpdateView.as_view(), name="pointupdate"),
 
-    path("client/points/list", ClientPointView.as_view(), name="clientpontlist"),
+    path("client/points/list/", ClientPointView.as_view(), name="clientpontlist"),
+
+
+    path("test/", WeatherTestView.as_view(), name="test"),
 ]

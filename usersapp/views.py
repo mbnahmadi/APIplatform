@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import UserModel, ClientProfileModel, APITokenModel
-from .serializers import ClientProfileSerializer, LogoutSerializer, GenerateAPITokenSerializer
+from .serializers import ClientProfileSerializer, LogoutSerializer, GenerateApiKeyResponseSerializer
 from .permissions import IsAdminUser
 from .service.api_token import GenerateApiKeyService
 
@@ -75,7 +75,7 @@ class GenerateAPIToken(APIView):
         key = GenerateApiKeyService(user=request.user)
         api_key = key.execute()
 
-        # serializer = GenerateAPITokenSerializer(data=api_key)
+        serializer = GenerateApiKeyResponseSerializer({"api_key": api_key})
         # if serializer.is_valid():
-        return Response(api_key)
+        return Response(serializer.data)
         # return Response({"error": "bad request"})

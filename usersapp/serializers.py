@@ -67,5 +67,5 @@ class ClientProfileSerializer(serializers.ModelSerializer):
 
 
 
-class GenerateAPITokenSerializer(serializers.Serializer):
-    api_token = serializers.CharField(read_only=True)
+class GenerateApiKeyResponseSerializer(serializers.Serializer):
+    api_key = serializers.CharField(read_only=True)

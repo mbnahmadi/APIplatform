@@ -1,5 +1,5 @@
 from django.db import models
-from usersapp.models import UserModel
+from usersapp.models import User
 # Create your models here.
 
 class UploadFileModel(models.Model):
@@ -8,8 +8,8 @@ class UploadFileModel(models.Model):
         PROCESSING = 'processing', 'processing'
         COMPLETED = 'completed', 'completed'
         FAILED = 'failed', 'failed'
-    uploaded_by = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name="uploadfile")
-    owner = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="uploadfile")
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     file = models.FileField(upload_to='csv_import/%Y/%m/%d/')
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     error_message = models.TextField(blank=True, null=True)
@@ -20,7 +20,7 @@ class UploadFileModel(models.Model):
 
 
 class UserPointModel(models.Model):
-    owner = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name="userpoints")
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="userpoints")
     name = models.CharField(max_length=100, null=False, blank=False)
     latitude = models.FloatField()
     longitude = models.FloatField()

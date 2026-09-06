@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-
+from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,12 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-j6-4d=4p4al2wg+7vk+@jlqo7-zi93o!%cirrjp8(9)agui=2w'
+SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config("DEBUG")
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
 
 # Application definition
@@ -46,12 +46,15 @@ INSTALLED_APPS = [
     # apps
     'usersapp.apps.UsersappConfig',
     'pointsapp.apps.PointsappConfig',
+    'contractsapp.apps.ContractsappConfig',
+    'weatherapp.apps.WeatherappConfig',
+    'locationsapp.apps.LocationsappConfig',
     # swagger
     # 'drf_yasg'
     'drf_spectacular',
     'drf_spectacular_sidecar',
 ]
-AUTH_USER_MODEL = 'usersapp.UserModel'
+AUTH_USER_MODEL = 'usersapp.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

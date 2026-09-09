@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-# from .models import UserModel, ClientProfileModel, APITokenModel
+from .models import User
 
 # Register your models here.
 
@@ -8,10 +8,10 @@ from django.contrib.auth.admin import UserAdmin
 # admin.site.register(ClientProfileModel)
 # admin.site.register(APITokenModel)
 
-# @admin.register(UserModel)
-# class UserModelAdmin(UserAdmin):
-#     list_display = UserAdmin.list_display + ('role',)
+@admin.register(User)
+class UserModelAdmin(UserAdmin):
+    list_display = UserAdmin.list_display + ('role',)
 
-#     fieldsets = UserAdmin.fieldsets + (
-#         ('Role', {'fields': ('role',)}),
-#     )
+    fieldsets = UserAdmin.fieldsets + (
+        ('Role', {'fields': ('role',)}),
+    )

@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 # Create your models here.
-class Contract(models.Model):
+class ContractModel(models.Model):
 
     class Status(models.TextChoices):
         ACTIVE = "ACTIVE", "Active"
@@ -25,17 +25,38 @@ class Contract(models.Model):
     )
 
     request_quota = models.PositiveIntegerField()
+    used_requests = models.PositiveIntegerField(default=0)
     rate_limit = models.PositiveIntegerField()
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(end_date__gt=models.F("start_date")),
+                name="contract_end_after_start",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(rate_limit__gt=0),
+                name="contract_rate_limit_gt_zero",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(request_quota__gt=0),
+                name="contract_request_quota_gt_zero",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(request_quota__gte=models.F("used_requests")),
+                name="contract_quota_gte_used_requests",
+            )
+        ]
+
     def __str__(self):
-        return f"{self.start_date} to {self.end_date}"
+        return f"{self.user} | {self.start_date} to {self.end_date}"
 
 
 
-class Parameter(models.Model):
+class ParameterModel(models.Model):
     name = models.CharField(
         max_length=100,
         unique=True,
@@ -55,12 +76,42 @@ class Parameter(models.Model):
     )
 
     def __str__(self):
-        return f"{self.name} - {self.unit} / {self.is_active}"
+        return f"{self.name} ({self.unit})"
 
 
-class APIKey(models.Model):
+class ContractParameterModel(models.Model):
     contract = models.ForeignKey(
-        Contract,
+        ContractModel,
+        on_delete=models.CASCADE,
+        related_name="contract_parameters"
+        )
+    parameter = models.ForeignKey(
+        ParameterModel,
+        on_delete=models.PROTECT,
+        related_name="contract_parameters",
+    )
+    assigned_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="contract_parameter_assignments_created"
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["contract", "parameter"],
+                name="unique_contract_parameter",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.assigned_by} at {self.assigned_at}"
+    
+
+class APIKeyModel(models.Model):
+    contract = models.ForeignKey(
+        ContractModel,
         on_delete=models.CASCADE,
         related_name="api_keys",
     )
@@ -93,13 +144,13 @@ class APIKey(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.contract.user.first_name} - {self.is_active}"
+       return f"{self.contract} - {'Active' if self.is_active else 'Inactive'}"
 
 
 
-class ContractHistory(models.Model):
+class ContractHistoryModel(models.Model):
     contract = models.ForeignKey(
-        Contract,
+        ContractModel,
         on_delete=models.CASCADE,
         related_name="history",
     )
@@ -128,4 +179,4 @@ class ContractHistory(models.Model):
         blank=True,
     )
     def __str__(self):
-        return f"{self.changed_by} at {self.changed_at}"
+        return f"{self.contract} - {self.field_name}: {self.old_value} -> {self.new_value}"

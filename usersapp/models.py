@@ -21,6 +21,21 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        permissions = [
+            ("create_client", "Can create client"),
+            ("update_client", "Can update client"),
+            ("activate_client", "Can activate or deactivate client"),
+            ("change_client_role", "Can change client role"),
+
+            ("create_admin", "Can create admin"),
+            ("update_admin", "Can update admin"),
+            ("activate_admin", "Can activate or deactivate admin"),
+            ("change_admin_role", "Can change admin role"),
+
+            ("manage_permissions", "Can manage user permissions"),
+        ]
+
     def __str__(self):
         return f"{self.username} - {self.first_name} {self.last_name}"
 

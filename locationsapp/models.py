@@ -57,6 +57,10 @@ class ContractPointModel(models.Model):
                 name="unique_contract_point",
             ),
         ]
+        permissions = [
+            ("assign_point", "Can assign point to contract"),
+            ("remove_point", "Can remove point from contract"),
+        ]
 
 # class UserPointModel(models.Model):
 #     user = models.ForeignKey(

@@ -50,6 +50,10 @@ class ContractModel(models.Model):
                 name="contract_quota_gte_used_requests",
             )
         ]
+        permissions = [
+            ("renew_contract", "Can renew contract"),
+            ("view_contract_history", "Can view contract history"),
+        ]
 
     def __str__(self):
         return f"{self.user} | {self.start_date} to {self.end_date}"
@@ -104,6 +108,10 @@ class ContractParameterModel(models.Model):
                 name="unique_contract_parameter",
             ),
         ]
+        permissions = [
+            ("assign_parameter", "Can assign parameter to contract"),
+            ("remove_parameter", "Can remove parameter from contract"),
+        ]
 
     def __str__(self):
         return f"{self.assigned_by} at {self.assigned_at}"
@@ -141,6 +149,9 @@ class APIKeyModel(models.Model):
                 condition=models.Q(is_active=True),
                 name="unique_active_api_key_per_contract",
             ),
+        ]
+        permissions = [
+            ("manage_api_key", "Can manage API keys"),
         ]
 
     def __str__(self):

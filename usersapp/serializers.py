@@ -1,9 +1,101 @@
-# from rest_framework import serializers
-# from .models import UserModel, ClientProfileModel, APITokenModel
-# from django.contrib.auth import get_user_model
+from rest_framework import serializers
+# from .models import User
+from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import Permission
 
-# User = get_user_model()
 
+
+
+class AssignPermissionSerializer(serializers.Serializer):
+
+    permission_id = serializers.PrimaryKeyRelatedField(
+        queryset=Permission.objects.all(),
+        source="permission",
+    )
+
+
+
+User = get_user_model()
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    class Meta:
+        model = User
+        fields = ["role", "email", "first_name", "last_name", "username", "password"]
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            first_name=validated_data["first_name"],
+            last_name=validated_data["last_name"],
+            role=validated_data["role"],
+            password=validated_data["password"]
+        )
+        return user
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["role", "email", "first_name", "last_name", "username", "id", "is_active", "created_at", "updated_at"]
+
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            "email",
+            "first_name",
+            "last_name",
+            "username",
+        ]
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+
+        return instance
+
+
+        
+class UserLoginSerializer(serializers.Serializer):
+    identifier = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        request = self.context.get("request")
+
+        user = authenticate(
+            request=request,
+            identifier=attrs["identifier"],
+            password=attrs["password"],
+        )
+
+        if user is None:
+            raise serializers.ValidationError(
+                "Invalid username/email or password."
+            )
+
+        attrs["user"] = user
+        return attrs
+
+
+
+class UserStatusSerializer(serializers.Serializer):
+    is_active = serializers.BooleanField()
+
+
+class UserRoleSerializer(serializers.Serializer):
+    role = serializers.ChoiceField(
+        choices=User.Role.choices
+    )
 # class LogoutSerializer(serializers.Serializer):
 #     refresh = serializers.CharField()
 

@@ -51,8 +51,13 @@ class ContractModel(models.Model):
             )
         ]
         permissions = [
+            ("create_contract", "Can create contract"),
+            ("update_contract", "Can update contract"),
+            ("activate_contract", "Can activate or deactivate contract"),
             ("renew_contract", "Can renew contract"),
-            ("view_contract_history", "Can view contract history"),
+            # ("view_contract_history", "Can view contract history"),
+            # ("renew_contract", "Can renew contract"),
+            
         ]
 
     def __str__(self):
@@ -189,5 +194,10 @@ class ContractHistoryModel(models.Model):
         null=True,
         blank=True,
     )
+
+    class Meta:
+        permissions =[
+            ("view_contract_history", "Can view contract history"),
+        ]
     def __str__(self):
         return f"{self.contract} - {self.field_name}: {self.old_value} -> {self.new_value}"

@@ -4,15 +4,18 @@ from django.shortcuts import render
 from .serializers import (
     ContractCreateSerializer,
     ContractSerializer,
-    ContractUpdateSerializer
-    
+    ContractUpdateSerializer,
+    ContractStatusSerializer,
+    ContractRenewSerializer,
+    ContractHistorySerializer
     )
 
-from .models import ContractModel
-from .permissions import CanViewContracts
+from .models import ContractModel, ContractHistoryModel
+from .permissions import CanViewContracts, CanViewContractHistory
 from .service.create_contract import CreateContractService
 from .service.update_contract import UpdateContractService
-# from .service.api_token import GenerateApiKeyService
+from .service.contract_status import ChangeContractStatusService
+from .service.contract_renewal import RenewContractService
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -148,5 +151,102 @@ class ContractUpdateAPIView(APIView):
 
         return Response(
             ContractSerializer(contract).data,
+            status=status.HTTP_200_OK,
+        )
+
+
+
+class ContractStatusAPIView(APIView):
+    authentication_classes = [
+        JWTAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def patch(self, request, contract_id):
+        contract = get_object_or_404(
+            ContractModel,
+            pk=contract_id,
+        )
+
+        serializer = ContractStatusSerializer(
+            data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+
+        contract = ChangeContractStatusService(
+            actor=request.user,
+            contract=contract,
+            new_status=serializer.validated_data["status"],
+        ).execute()
+
+        return Response(
+            ContractSerializer(contract).data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class ContractRenewAPIView(APIView):
+    authentication_classes = [
+        JWTAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def patch(self, request, contract_id):
+        contract = get_object_or_404(
+            ContractModel,
+            pk=contract_id,
+        )
+
+        serializer = ContractRenewSerializer(
+            data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+
+        contract = RenewContractService(
+            actor=request.user,
+            contract=contract,
+            validated_data=serializer.validated_data,
+        ).execute()
+
+        return Response(
+            ContractSerializer(contract).data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class ContractHistoryListAPIView(APIView):
+    authentication_classes = [
+        JWTAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+        CanViewContractHistory,
+    ]
+
+    def get(self, request, contract_id):
+        contract = get_object_or_404(
+            ContractModel,
+            pk=contract_id,
+        )
+
+        history = ContractHistoryModel.objects.filter(
+            contract=contract
+        ).select_related(
+            "changed_by",
+        ).order_by(
+            "-changed_at"
+        )
+
+        serializer = ContractHistorySerializer(
+            history,
+            many=True,
+        )
+
+        return Response(
+            serializer.data,
             status=status.HTTP_200_OK,
         )

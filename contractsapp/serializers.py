@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ContractModel
+from .models import ContractModel, ContractHistoryModel
 from django.contrib.auth import get_user_model
 
 
@@ -73,3 +73,29 @@ class ContractStatusSerializer(serializers.Serializer):
     status = serializers.ChoiceField(
         choices=ContractModel.Status.choices
     )
+
+
+class ContractRenewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContractModel
+        fields = [
+            "start_date",
+            "end_date",
+            "request_quota",
+            "rate_limit",
+        ]
+
+
+# =====================  contract history ==========================
+class ContractHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContractHistoryModel
+        fields = [
+            "id",
+            "contract",
+            "changed_by",
+            "changed_at",
+            "field_name",
+            "old_value",
+            "new_value",
+        ]

@@ -40,6 +40,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('usersapp.urls')),
     path('api/', include('contractsapp.urls')),
+    path('api/', include('locationsapp.urls')),
 
     # path('api/', include('pointsapp.urls')),
 

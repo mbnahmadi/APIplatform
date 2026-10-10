@@ -10,7 +10,10 @@ from .serializers import (
     ContractHistorySerializer,
     APIKeySerializer,
     GenerateAPIKeySerializer,
-    APIKeyStatusSerializer
+    APIKeyStatusSerializer,
+    ParameterCreateSerializer,
+    ParameterSerializer,
+    AssignParameterSerializer
     )
 
 from .models import ContractModel, ContractHistoryModel, APIKeyModel
@@ -23,16 +26,20 @@ from .service.contract_renewal import RenewContractService
 from .service.api_key_generate import GenerateAPIKeyService
 from .service.api_key_regenerate import RegenerateAPIKeyService
 from .service.api_key_revoke import RevokeAPIKeyService
+from .service.create_parameter import CreateParameterService
+from .service.parameter_query import ParameterQueryService
+from .service.assign_parameter import AssignParameterService
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.shortcuts import get_object_or_404
 
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
+
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -351,4 +358,78 @@ class RevokeAPIKeyAPIView(APIView):
         return Response(
             serializer.data,
             status=status.HTTP_200_OK,
+        )
+
+
+@extend_schema(request=ParameterCreateSerializer)
+class ParameterCreateAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ParameterCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        parameter = CreateParameterService(
+            actor=request.user,
+            validated_data=serializer.validated_data,
+        ).execute()
+
+        return Response(
+            ParameterCreateSerializer(parameter).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class ParameterListAPIView(generics.ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = ParameterSerializer
+
+    def get_queryset(self):
+        return ParameterQueryService(
+            actor=self.request.user
+        ).get_queryset()
+
+
+class ParameterDetailAPIView(generics.RetrieveAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = ParameterSerializer
+    lookup_field = "id"
+
+    def get_object(self):
+        service = ParameterQueryService(actor=self.request.user)
+        parameter = service.get_parameter(self.kwargs["id"])
+
+        return get_object_or_404(
+            service.get_queryset(),
+            id=parameter.id if parameter else None,
+        )
+
+
+@extend_schema(request=AssignParameterSerializer)
+class AssignParameterAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, contract_id):
+        serializer = AssignParameterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        assignment = AssignParameterService(
+            actor=request.user,
+            contract_id=contract_id,
+            parameter_id=serializer.validated_data["parameter_id"],
+        ).execute()
+
+        return Response(
+            {
+                "id": assignment.id,
+                "contract_id": assignment.contract_id,
+                "parameter_id": assignment.parameter_id,
+                "assigned_by": assignment.assigned_by_id,
+                "assigned_at": assignment.assigned_at,
+            },
+            status=status.HTTP_201_CREATED,
         )

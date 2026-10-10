@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ContractModel, ContractHistoryModel, APIKeyModel
+from .models import ContractModel, ContractHistoryModel, APIKeyModel, ParameterModel
 from django.contrib.auth import get_user_model
 
 
@@ -121,3 +121,30 @@ class APIKeyStatusSerializer(serializers.ModelSerializer):
             "deactivated_at",
         ]
         read_only_fields = fields
+
+
+
+# ==================== parameter management ======================
+
+class ParameterCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ParameterModel
+        fields = ["name", "description", "unit", "is_active"]
+
+
+
+class ParameterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ParameterModel
+        fields = [
+            "id",
+            "name",
+            "description",
+            "unit",
+            "is_active",
+        ]
+        read_only_fields = fields
+
+
+class AssignParameterSerializer(serializers.Serializer):
+    parameter_id = serializers.IntegerField(min_value=1)

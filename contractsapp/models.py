@@ -92,8 +92,8 @@ class ContractParameterModel(models.Model):
     contract = models.ForeignKey(
         ContractModel,
         on_delete=models.CASCADE,
-        related_name="contract_parameters"
-        )
+        related_name="contract_parameters",
+    )
     parameter = models.ForeignKey(
         ParameterModel,
         on_delete=models.PROTECT,
@@ -102,24 +102,41 @@ class ContractParameterModel(models.Model):
     assigned_by = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
-        related_name="contract_parameter_assignments_created"
+        related_name="contract_parameter_assignments_created",
     )
     assigned_at = models.DateTimeField(auto_now_add=True)
+
+    revoked_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    revoked_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="contract_parameter_assignments_revoked",
+    )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=["contract", "parameter"],
-                name="unique_contract_parameter",
+                condition=models.Q(revoked_at__isnull=True),
+                name="unique_active_contract_parameter",
             ),
         ]
         permissions = [
             ("assign_parameter", "Can assign parameter to contract"),
-            ("remove_parameter", "Can remove parameter from contract"),
+            ("remove_parameter", "Can revoke parameter assignment"),
         ]
 
+    @property
+    def is_active(self):
+        return self.revoked_at is None
+
     def __str__(self):
-        return f"{self.assigned_by} at {self.assigned_at}"
+        return f"{self.contract} | {self.parameter}"
     
 
 class APIKeyModel(models.Model):

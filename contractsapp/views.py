@@ -7,15 +7,22 @@ from .serializers import (
     ContractUpdateSerializer,
     ContractStatusSerializer,
     ContractRenewSerializer,
-    ContractHistorySerializer
+    ContractHistorySerializer,
+    APIKeySerializer,
+    GenerateAPIKeySerializer,
+    APIKeyStatusSerializer
     )
 
-from .models import ContractModel, ContractHistoryModel
+from .models import ContractModel, ContractHistoryModel, APIKeyModel
 from .permissions import CanViewContracts, CanViewContractHistory
 from .service.create_contract import CreateContractService
 from .service.update_contract import UpdateContractService
-from .service.contract_status import ChangeContractStatusService
+# from .service.contract_status import ChangeContractStatusService
+from .service.change_status_contract_history import ChangeContractStatusService
 from .service.contract_renewal import RenewContractService
+from .service.api_key_generate import GenerateAPIKeyService
+from .service.api_key_regenerate import RegenerateAPIKeyService
+from .service.api_key_revoke import RevokeAPIKeyService
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -33,6 +40,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from drf_spectacular.utils import extend_schema
 # Create your views here.
 
+
+@extend_schema(request=ContractCreateSerializer)
 class ContractCreateAPIView(APIView):
 
     authentication_classes = [
@@ -120,7 +129,7 @@ class ContractRetrieveAPIView(APIView):
         )
 
 
-
+@extend_schema(request=ContractUpdateSerializer)
 class ContractUpdateAPIView(APIView):
     authentication_classes = [
         JWTAuthentication,
@@ -156,6 +165,7 @@ class ContractUpdateAPIView(APIView):
 
 
 
+@extend_schema(request=ContractStatusSerializer)
 class ContractStatusAPIView(APIView):
     authentication_classes = [
         JWTAuthentication,
@@ -187,6 +197,8 @@ class ContractStatusAPIView(APIView):
         )
 
 
+
+@extend_schema(request=ContractRenewSerializer)
 class ContractRenewAPIView(APIView):
     authentication_classes = [
         JWTAuthentication,
@@ -245,6 +257,96 @@ class ContractHistoryListAPIView(APIView):
             history,
             many=True,
         )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+
+# =================== API Key ==============================
+@extend_schema(request=GenerateAPIKeySerializer)
+class GenerateAPIKeyAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = GenerateAPIKeySerializer(
+            data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+
+        contract = get_object_or_404(
+            ContractModel,
+            pk=serializer.validated_data["contract_id"],
+            user=request.user,
+        )
+
+        raw_key = GenerateAPIKeyService(
+            actor=request.user,
+            contract=contract,
+        ).execute()
+
+        response_serializer = APIKeySerializer(
+            instance={"api_key": raw_key}
+        )
+        # response_serializer.is_valid(raise_exception=True)
+
+        return Response(
+            response_serializer.data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+
+@extend_schema(request=GenerateAPIKeySerializer)
+class RegenerateAPIKeyAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = GenerateAPIKeySerializer(
+            data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+
+        contract = get_object_or_404(
+            ContractModel,
+            pk=serializer.validated_data["contract_id"],
+            user=request.user,
+        )
+
+        raw_key = RegenerateAPIKeyService(
+            actor=request.user,
+            contract=contract,
+        ).execute()
+
+        response_serializer = APIKeySerializer(
+            instance={"api_key": raw_key}
+        )
+
+        return Response(
+            response_serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class RevokeAPIKeyAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, api_key_id):
+        api_key = get_object_or_404(
+            APIKeyModel.objects.select_related("contract"),
+            pk=api_key_id,
+        )
+
+        revoked_key = RevokeAPIKeyService(
+            actor=request.user,
+            api_key=api_key,
+        ).execute()
+
+        serializer = APIKeyStatusSerializer(revoked_key)
 
         return Response(
             serializer.data,

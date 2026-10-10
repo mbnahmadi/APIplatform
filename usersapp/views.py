@@ -69,6 +69,8 @@ class PermissionListAPIView(APIView):
             status=status.HTTP_200_OK,
         )
 
+
+@extend_schema(request=AssignPermissionSerializer)
 class UserPermissionAPIView(APIView):
 
     permission_classes = [
@@ -112,6 +114,7 @@ class UserPermissionAPIView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
 
 
 class UserPermissionListAPIView(APIView):
@@ -266,6 +269,7 @@ class UserListAPIView(APIView):
         )
 
 
+@extend_schema(request=UserCreateSerializer)
 class UserCreateAPIView(APIView):
 
     authentication_classes = [
@@ -327,6 +331,7 @@ class UserRetrieveAPIView(APIView):
         )
 
 
+@extend_schema(request=UserUpdateSerializer)
 class UserUpdateAPIView(APIView):
 
     authentication_classes = [
@@ -374,6 +379,7 @@ class UserUpdateAPIView(APIView):
         )
 
 
+@extend_schema(request=UserStatusSerializer)
 class UserStatusAPIView(APIView):
 
     authentication_classes = [
@@ -422,7 +428,7 @@ class UserStatusAPIView(APIView):
         )
 
 
-
+@extend_schema(request=UserRoleSerializer)
 class ChangeUserRoleAPIView(APIView):
 
     authentication_classes = [

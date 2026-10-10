@@ -11,7 +11,7 @@ class ChangeContractStatusService:
 
     def execute(self):
         if not self.actor.has_perm(
-            "contracts.activate_contract"
+            "contractsapp.activate_contract"
         ):
             raise PermissionDenied(
                 "You do not have permission to change contract status."

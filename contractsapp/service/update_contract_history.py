@@ -14,7 +14,7 @@ class UpdateContractService:
 
     def execute(self):
         if not self.actor.has_perm(
-            "contracts.update_contract"
+            "contractsapp.update_contract"
         ):
             raise PermissionDenied(
                 "You do not have permission to update contracts."

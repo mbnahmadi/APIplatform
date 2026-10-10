@@ -157,6 +157,7 @@ class APIKeyModel(models.Model):
         ]
         permissions = [
             ("manage_api_key", "Can manage API keys"),
+            ("revoke_api_key", "Can revoke API keys"),
         ]
 
     def __str__(self):

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ContractModel, ContractHistoryModel
+from .models import ContractModel, ContractHistoryModel, APIKeyModel
 from django.contrib.auth import get_user_model
 
 
@@ -99,3 +99,25 @@ class ContractHistorySerializer(serializers.ModelSerializer):
             "old_value",
             "new_value",
         ]
+
+
+#  ======================= API Key =======================
+class GenerateAPIKeySerializer(serializers.Serializer):
+    contract_id = serializers.IntegerField()
+
+
+class APIKeySerializer(serializers.Serializer):
+    api_key = serializers.CharField(read_only=True)
+
+
+class APIKeyStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = APIKeyModel
+        fields = [
+            "id",
+            "contract",
+            "is_active",
+            "created_at",
+            "deactivated_at",
+        ]
+        read_only_fields = fields

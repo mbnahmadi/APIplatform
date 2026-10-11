@@ -8,7 +8,7 @@ class ParameterQueryService:
         self.actor = actor
 
     def get_queryset(self):
-        if not self.actor.has_perm("locationsapp.view_parametermodel"):
+        if not self.actor.has_perm("contractsapp.view_parameter"):
             raise PermissionDenied(
                 "You do not have permission to view parameters."
             )

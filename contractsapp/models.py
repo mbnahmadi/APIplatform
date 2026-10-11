@@ -86,9 +86,9 @@ class ParameterModel(models.Model):
 
     class Meta:
         permissions = [
-            ("add_parametermodel", "Can create new parameter"),
-            ("view_parametermodel", "Can view all parameter"),
-            ("change_parametermodel", "Can change status of parameter"),
+            ("add_parameter", "Can create new parameter"),
+            ("view_parameter", "Can view all parameter"),
+            ("change_parameter_status", "Can change status of parameter"),
             
         ]
 

@@ -3,7 +3,7 @@ from django.utils import timezone
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 
 from contractsapp.models import ContractModel
-from locations.models import ContractParameterModel, ParameterModel
+from ..models import ContractParameterModel, ParameterModel
 
 
 class ChangeParameterStatusService:
@@ -14,7 +14,7 @@ class ChangeParameterStatusService:
 
     @transaction.atomic
     def execute(self):
-        if not self.actor.has_perm("locations.change_parametermodel"):
+        if not self.actor.has_perm("contractsapp.change_parameter_status"):
             raise PermissionDenied(
                 "You do not have permission to change parameter status."
             )

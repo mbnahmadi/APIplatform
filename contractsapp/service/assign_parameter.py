@@ -18,7 +18,7 @@ class AssignParameterService:
 
     @transaction.atomic
     def execute(self):
-        if not self.actor.has_perm("locationsapp.assign_parameter"):
+        if not self.actor.has_perm("contractsapp.assign_parameter"):
             raise PermissionDenied(
                 "You do not have permission to assign parameters."
             )

@@ -11,7 +11,7 @@ class CreateParameterService:
 
     @transaction.atomic
     def execute(self):
-        if not self.actor.has_perm("locationsapp.add_parametermodel"):
+        if not self.actor.has_perm("contractsapp.add_parametermodel"):
             raise PermissionDenied(
                 "You do not have permission to create parameters."
             )

@@ -84,6 +84,14 @@ class ParameterModel(models.Model):
         default=True,
     )
 
+    class Meta:
+        permissions = [
+            ("add_parametermodel", "Can create new parameter"),
+            ("view_parametermodel", "Can view all parameter"),
+            ("change_parametermodel", "Can change status of parameter"),
+            
+        ]
+
     def __str__(self):
         return f"{self.name} ({self.unit})"
 

@@ -13,7 +13,9 @@ from .views import (
     ParameterCreateAPIView,
     ParameterListAPIView,
     ParameterDetailAPIView,
-    AssignParameterAPIView
+    AssignParameterAPIView,
+    RevokeParameterAssignmentAPIView,
+    ParameterStatusAPIView
 )
 
 
@@ -34,5 +36,8 @@ urlpatterns = [
     path("parameters/", ParameterListAPIView.as_view(), name="parameter-list"),
     path("parameters/<int:id>/", ParameterDetailAPIView.as_view(), name="parameter-detail"),
     path("contracts/<int:contract_id>/parameters/", AssignParameterAPIView.as_view(), name="assign-parameter"),
+    path("contracts/<int:contract_id>/parameters/<int:parameter_id>/", RevokeParameterAssignmentAPIView.as_view(), name="revoke-parameter-assignment"),
+    path("parameters/<int:parameter_id>/status/", ParameterStatusAPIView.as_view(), name="parameter-status"),
+
 
 ]

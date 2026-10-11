@@ -148,3 +148,8 @@ class ParameterSerializer(serializers.ModelSerializer):
 
 class AssignParameterSerializer(serializers.Serializer):
     parameter_id = serializers.IntegerField(min_value=1)
+
+
+
+class ParameterStatusSerializer(serializers.Serializer):
+    is_active = serializers.BooleanField()

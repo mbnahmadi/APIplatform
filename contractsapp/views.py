@@ -13,7 +13,8 @@ from .serializers import (
     APIKeyStatusSerializer,
     ParameterCreateSerializer,
     ParameterSerializer,
-    AssignParameterSerializer
+    AssignParameterSerializer,
+    ParameterStatusSerializer
     )
 
 from .models import ContractModel, ContractHistoryModel, APIKeyModel
@@ -29,6 +30,8 @@ from .service.api_key_revoke import RevokeAPIKeyService
 from .service.create_parameter import CreateParameterService
 from .service.parameter_query import ParameterQueryService
 from .service.assign_parameter import AssignParameterService
+from .service.revoke_parameter_assignment import RevokeParameterAssignmentService
+from .service.change_parameter_status import ChangeParameterStatusService
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -432,4 +435,40 @@ class AssignParameterAPIView(APIView):
                 "assigned_at": assignment.assigned_at,
             },
             status=status.HTTP_201_CREATED,
+        )
+
+
+class RevokeParameterAssignmentAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, contract_id, parameter_id):
+        RevokeParameterAssignmentService(
+            actor=request.user,
+            contract_id=contract_id,
+            parameter_id=parameter_id,
+        ).execute()
+
+        return Response(status=204)
+
+
+
+@extend_schema(request=ParameterStatusSerializer)
+class ParameterStatusAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, parameter_id):
+        serializer = ParameterStatusSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        parameter = ChangeParameterStatusService(
+            actor=request.user,
+            parameter_id=parameter_id,
+            is_active=serializer.validated_data["is_active"],
+        ).execute()
+
+        return Response(
+            ParameterSerializer(parameter).data,
+            status=status.HTTP_200_OK,
         )

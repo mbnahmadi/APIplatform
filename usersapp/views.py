@@ -8,12 +8,16 @@ from .serializers import (
     UserUpdateSerializer, 
     UserStatusSerializer,
     UserRoleSerializer,
-    LogoutSerializer
+    LogoutSerializer,
+    UserFilterSerializer,
+    MyProfileSerializer,
+    UserProfileUpdateSerializer
     )
 from .permissions import IsAdminUser, CanViewUsers, CanManagePermissions
 from .service.assign_permissions import AssignPermissionService
 from .service.change_user_role import ChangeUserRoleService
 from .service.logout import LogoutService
+from .service.update_user_profile import UpdateUserProfileService
 # from .service.api_token import GenerateApiKeyService
 
 from django.contrib.auth import get_user_model
@@ -31,7 +35,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 # Create your views here.
 
 User = get_user_model()
@@ -164,6 +168,96 @@ class UserPermissionListAPIView(APIView):
         )
 
 
+class MyProfileAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = MyProfileSerializer(request.user)
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class UserProfileAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [
+        IsAuthenticated,
+        CanViewUsers,
+    ]
+
+    def get(self, request, user_id):
+        user = get_object_or_404(User, pk=user_id)
+
+        serializer = MyProfileSerializer(user)
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+@extend_schema(request=UserProfileUpdateSerializer)
+class UserProfileUpdateAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, user_id):
+        if not request.user.has_perm("usersapp.change_user_profile"):
+            raise PermissionDenied(
+                "You do not have permission to change user profiles."
+            )
+
+        serializer = UserProfileUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = UpdateUserProfileService(
+            actor=request.user,
+            user_id=user_id,
+            validated_data=serializer.validated_data,
+        ).execute()
+
+        response_serializer = MyProfileSerializer(user)
+
+        return Response(
+            response_serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+class MyPermissionListAPIView(APIView):
+
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(self, request):
+        user = request.user
+
+        if user.role != User.Role.ADMIN:
+            raise PermissionDenied(
+                "Only admins can view their own permissions."
+            )
+
+        permissions = user.user_permissions.select_related(
+            "content_type"
+        ).all()
+
+        data = [
+            {
+                "id": permission.id,
+                "name": permission.name,
+                "codename": permission.codename,
+                "app_label": permission.content_type.app_label,
+            }
+            for permission in permissions
+        ]
+
+        return Response(
+            data,
+            status=status.HTTP_200_OK,
+        )
+
 class UserPermissionDeleteAPIView(APIView):
 
     permission_classes = [
@@ -251,7 +345,7 @@ class LoginAPIView(APIView):
             return Response(token, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+@extend_schema(request=LogoutSerializer)
 class LogoutAPIView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -268,7 +362,26 @@ class LogoutAPIView(APIView):
 
 
 
-
+@extend_schema(
+    summary="List of users",
+    description=(
+        "Retrieve a list of users. You can optionally filter the results "
+        "by user role using the `role` query parameter. "
+        "Supported values are `ADMIN` and `CLIENT`. "
+        "If the parameter is omitted, all users are returned."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="role",
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            enum=["ADMIN", "CLIENT"],
+            description="Filter users by role. Allowed values: ADMIN, CLIENT.",
+        ),
+    ],
+    responses=UserSerializer(many=True),
+)
 class UserListAPIView(APIView):
 
     permission_classes = [
@@ -277,7 +390,17 @@ class UserListAPIView(APIView):
     ]
 
     def get(self, request):
+        filter_serializer = UserFilterSerializer(
+            data=request.query_params
+        )
+        filter_serializer.is_valid(raise_exception=True)
+
         users = User.objects.all()
+
+        role = filter_serializer.validated_data.get("role")
+
+        if role:
+            users = users.filter(role=role)
 
         serializer = UserSerializer(users, many=True)
 

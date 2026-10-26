@@ -34,6 +34,8 @@ class User(AbstractUser):
             ("change_admin_role", "Can change admin role"),
 
             ("manage_permissions", "Can manage user permissions"),
+
+            ("change_user_profile", "Can change user profile"),
         ]
 
     def __str__(self):

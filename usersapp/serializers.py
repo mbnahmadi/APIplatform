@@ -42,7 +42,11 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ["role", "email", "first_name", "last_name", "username", "id", "is_active", "created_at", "updated_at"]
 
-
+class UserFilterSerializer(serializers.Serializer):
+    role = serializers.ChoiceField(
+        choices=User.Role.choices,
+        required=False,
+    )
 
 class UserUpdateSerializer(serializers.ModelSerializer):
 
@@ -101,6 +105,29 @@ class UserRoleSerializer(serializers.Serializer):
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
+
+class MyProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "role",
+        ]
+        read_only_fields = fields
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+        ]
 
 # class LogoutSerializer(serializers.Serializer):
 #     refresh = serializers.CharField()

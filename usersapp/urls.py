@@ -28,10 +28,14 @@ from .views import (
     UserPermissionAPIView, 
     UserPermissionListAPIView,
     UserPermissionDeleteAPIView,
+    MyPermissionListAPIView,
     UserRetrieveAPIView,
     UserUpdateAPIView,
     UserStatusAPIView,
-    LogoutAPIView
+    LogoutAPIView,
+    MyProfileAPIView,
+    UserProfileAPIView,
+    UserProfileUpdateAPIView
 )
 
 urlpatterns = [
@@ -44,11 +48,15 @@ urlpatterns = [
     path("users/create/", UserCreateAPIView.as_view(), name="user-create"),
     path("users/<int:user_id>/", UserUpdateAPIView.as_view(), name="user-update"),
     path("users/<int:user_id>/status/", UserStatusAPIView.as_view(), name="user-status"),
+    path("profile/me/", MyProfileAPIView.as_view(), name="my-profile"),
+    path("profile/<int:user_id>/", UserProfileAPIView.as_view(), name="user-profile"),
+    path("profile/<int:user_id>/", UserProfileUpdateAPIView.as_view(), name="user-profile-update",),
 
     path("permissions/", PermissionListAPIView.as_view(), name="permissions-llist"),
     path("users/<int:user_id>/permissions/", UserPermissionAPIView.as_view(), name="user-permission"),
-    path("users/<int:user_id>/permissions/", UserPermissionListAPIView.as_view(), name="user-permission-list"),
+    path("users/<int:user_id>/list/permissions/", UserPermissionListAPIView.as_view(), name="user-permission-list"),
     path("users/<int:user_id>/permissions/<int:permission_id>/", UserPermissionDeleteAPIView.as_view(), name="user-permission-delete"),
+    path("users/permissions/me", MyPermissionListAPIView.as_view(), name="my-permissions"),
 
     # path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     # path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

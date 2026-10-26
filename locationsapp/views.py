@@ -1,8 +1,10 @@
+from usersapp.authentication import VersionedJWTAuthentication
+
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
+# from rest_framework_simplejwt.authentication import VersionedJWTAuthentication
 
 from .serializers import (
     PointCreateSerializer,
@@ -22,7 +24,7 @@ from drf_spectacular.utils import extend_schema
 
 @extend_schema(request=PointCreateSerializer)
 class PointCreateAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -42,7 +44,7 @@ class PointCreateAPIView(APIView):
 
 
 class PointListAPIView(generics.ListAPIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = PointSerializer
 
@@ -52,7 +54,7 @@ class PointListAPIView(generics.ListAPIView):
 
 
 class PointDetailAPIView(generics.RetrieveAPIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = PointSerializer
     lookup_field = "id"
@@ -69,7 +71,7 @@ class PointDetailAPIView(generics.RetrieveAPIView):
 
 @extend_schema(request=AssignPointSerializer)
 class AssignPointAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request, contract_id):
@@ -96,7 +98,7 @@ class AssignPointAPIView(APIView):
 
 
 class RemovePointAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, contract_id, point_id):

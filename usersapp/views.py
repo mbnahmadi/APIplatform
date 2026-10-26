@@ -1,4 +1,6 @@
 from django.shortcuts import render
+# from .authentication import VersionedJWTAuthentication
+from usersapp.authentication import VersionedJWTAuthentication
 # from .models import 
 from .serializers import (
     UserLoginSerializer, 
@@ -11,13 +13,19 @@ from .serializers import (
     LogoutSerializer,
     UserFilterSerializer,
     MyProfileSerializer,
-    UserProfileUpdateSerializer
+    UserProfileUpdateSerializer,
+    AdminChangeClientPasswordSerializer,
+    ClientChangePasswordSerializer,
+    CustomTokenObtainPairSerializer,
+    VersionedTokenRefreshSerializer
     )
 from .permissions import IsAdminUser, CanViewUsers, CanManagePermissions
 from .service.assign_permissions import AssignPermissionService
 from .service.change_user_role import ChangeUserRoleService
 from .service.logout import LogoutService
 from .service.update_user_profile import UpdateUserProfileService
+from .service.change_own_password import ChangeOwnPasswordService
+from .service.admin_change_client_password import AdminChangeClientPasswordService
 # from .service.api_token import GenerateApiKeyService
 
 from django.contrib.auth import get_user_model
@@ -30,15 +38,26 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 
-from rest_framework_simplejwt.authentication import JWTAuthentication
+# from rest_framework_simplejwt.authentication import VersionedJWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenRefreshView
+
+# from rest_framework_simplejwt.views import TokenObtainPairView
+
 
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 # Create your views here.
 
 User = get_user_model()
+
+
+
+# class CustomTokenObtainPairView(TokenObtainPairView):
+#     serializer_class = CustomTokenObtainPairSerializer
+class VersionedTokenRefreshView(TokenRefreshView):
+    serializer_class = VersionedTokenRefreshSerializer
 
 
 class PermissionListAPIView(APIView):
@@ -169,7 +188,7 @@ class UserPermissionListAPIView(APIView):
 
 
 class MyProfileAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -182,7 +201,7 @@ class MyProfileAPIView(APIView):
 
 
 class UserProfileAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [
         IsAuthenticated,
         CanViewUsers,
@@ -200,7 +219,7 @@ class UserProfileAPIView(APIView):
 
 @extend_schema(request=UserProfileUpdateSerializer)
 class UserProfileUpdateAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, user_id):
@@ -322,16 +341,25 @@ class UserPermissionDeleteAPIView(APIView):
 # ==================================================================
 
 
+# def get_tokens_for_user(user):
+#     refresh = RefreshToken.for_user(user)
+
+#     refresh["user_id"] = user.id
+#     refresh["role"] = user.role
+
+#     return {
+#         "refresh": str(refresh),
+#         "access": str(refresh.access_token),
+#     }
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
-
-    refresh["user_id"] = user.id
-    refresh["role"] = user.role
+    refresh["token_version"] = user.token_version
 
     return {
         "refresh": str(refresh),
         "access": str(refresh.access_token),
     }
+
 
 @extend_schema(request=UserLoginSerializer)
 class LoginAPIView(APIView):
@@ -347,7 +375,7 @@ class LoginAPIView(APIView):
 
 @extend_schema(request=LogoutSerializer)
 class LogoutAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -414,7 +442,7 @@ class UserListAPIView(APIView):
 class UserCreateAPIView(APIView):
 
     authentication_classes = [
-        JWTAuthentication,
+        VersionedJWTAuthentication,
     ]
 
     permission_classes = [
@@ -449,7 +477,7 @@ class UserCreateAPIView(APIView):
 class UserRetrieveAPIView(APIView):
 
     authentication_classes = [
-        JWTAuthentication,
+        VersionedJWTAuthentication,
     ]
 
     permission_classes = [
@@ -476,7 +504,7 @@ class UserRetrieveAPIView(APIView):
 class UserUpdateAPIView(APIView):
 
     authentication_classes = [
-        JWTAuthentication,
+        VersionedJWTAuthentication,
     ]
 
     permission_classes = [
@@ -524,7 +552,7 @@ class UserUpdateAPIView(APIView):
 class UserStatusAPIView(APIView):
 
     authentication_classes = [
-        JWTAuthentication,
+        VersionedJWTAuthentication,
     ]
 
     permission_classes = [
@@ -573,7 +601,7 @@ class UserStatusAPIView(APIView):
 class ChangeUserRoleAPIView(APIView):
 
     authentication_classes = [
-        JWTAuthentication,
+        VersionedJWTAuthentication,
     ]
 
     permission_classes = [
@@ -605,6 +633,54 @@ class ChangeUserRoleAPIView(APIView):
 
         return Response(
             UserSerializer(user).data,
+            status=status.HTTP_200_OK,
+        )
+
+
+@extend_schema(request=ClientChangePasswordSerializer)
+class ChangeOwnPasswordAPIView(APIView):
+    authentication_classes = [VersionedJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ClientChangePasswordSerializer(
+            data=request.data,
+            context={"user": request.user},
+        )
+        serializer.is_valid(raise_exception=True)
+
+        ChangeOwnPasswordService(
+            actor=request.user,
+            new_password=serializer.validated_data["new_password"],
+        ).execute()
+
+        return Response(
+            {"detail": "Password changed successfully."},
+            status=status.HTTP_200_OK,
+        )
+
+@extend_schema(request=AdminChangeClientPasswordSerializer)
+class AdminChangeClientPasswordAPIView(APIView):
+    authentication_classes = [VersionedJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, user_id):
+        target_user = get_object_or_404(User, pk=user_id)
+
+        serializer = AdminChangeClientPasswordSerializer(
+            data=request.data,
+            context={"user": target_user},
+        )
+        serializer.is_valid(raise_exception=True)
+
+        AdminChangeClientPasswordService(
+            actor=request.user,
+            user_id=user_id,
+            new_password=serializer.validated_data["new_password"],
+        ).execute()
+
+        return Response(
+            {"detail": "Client password changed successfully."},
             status=status.HTTP_200_OK,
         )
 

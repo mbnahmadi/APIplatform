@@ -35,12 +35,16 @@ from .views import (
     LogoutAPIView,
     MyProfileAPIView,
     UserProfileAPIView,
-    UserProfileUpdateAPIView
+    UserProfileUpdateAPIView,
+    ChangeOwnPasswordAPIView,
+    AdminChangeClientPasswordAPIView,
+    VersionedTokenRefreshView
 )
 
 urlpatterns = [
     path("auth/login/", LoginAPIView.as_view(), name='login'),
-    path("auth/login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("auth/login/refresh/", VersionedTokenRefreshView.as_view(), name="token_refresh"),
+    # path("auth/login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("logout/", LogoutAPIView.as_view(), name="logout"),
 
     path("users/", UserListAPIView.as_view(), name='retrieve-users'),
@@ -51,6 +55,9 @@ urlpatterns = [
     path("profile/me/", MyProfileAPIView.as_view(), name="my-profile"),
     path("profile/<int:user_id>/", UserProfileAPIView.as_view(), name="user-profile"),
     path("profile/<int:user_id>/", UserProfileUpdateAPIView.as_view(), name="user-profile-update",),
+    path("profile/me/change-password/", ChangeOwnPasswordAPIView.as_view(), name="change-own-password"),
+    path("users/<int:user_id>/change-password/", AdminChangeClientPasswordAPIView.as_view(), name="admin-change-client-password"),
+
 
     path("permissions/", PermissionListAPIView.as_view(), name="permissions-llist"),
     path("users/<int:user_id>/permissions/", UserPermissionAPIView.as_view(), name="user-permission"),

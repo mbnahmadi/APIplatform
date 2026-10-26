@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from usersapp.authentication import VersionedJWTAuthentication
 from django.shortcuts import render
 # from .models import 
 from .serializers import (
@@ -44,7 +44,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 
 
-from rest_framework_simplejwt.authentication import JWTAuthentication
+# from rest_framework_simplejwt.authentication import VersionedJWTAuthentication
 
 
 from drf_spectacular.utils import extend_schema
@@ -55,7 +55,7 @@ from drf_spectacular.utils import extend_schema
 class ContractCreateAPIView(APIView):
 
     authentication_classes = [
-        JWTAuthentication,
+        VersionedJWTAuthentication,
     ]
 
     permission_classes = [
@@ -90,7 +90,7 @@ class ContractCreateAPIView(APIView):
 class ContractListAPIView(APIView):
 
     authentication_classes = [
-        JWTAuthentication,
+        VersionedJWTAuthentication,
     ]
 
     permission_classes = [
@@ -118,7 +118,7 @@ class ContractListAPIView(APIView):
 
 class ContractRetrieveAPIView(APIView):
     authentication_classes = [
-        JWTAuthentication,
+        VersionedJWTAuthentication,
     ]
     permission_classes = [
         IsAuthenticated,
@@ -142,7 +142,7 @@ class ContractRetrieveAPIView(APIView):
 @extend_schema(request=ContractUpdateSerializer)
 class ContractUpdateAPIView(APIView):
     authentication_classes = [
-        JWTAuthentication,
+        VersionedJWTAuthentication,
     ]
     permission_classes = [
         IsAuthenticated,
@@ -178,7 +178,7 @@ class ContractUpdateAPIView(APIView):
 @extend_schema(request=ContractStatusSerializer)
 class ContractStatusAPIView(APIView):
     authentication_classes = [
-        JWTAuthentication,
+        VersionedJWTAuthentication,
     ]
     permission_classes = [
         IsAuthenticated,
@@ -211,7 +211,7 @@ class ContractStatusAPIView(APIView):
 @extend_schema(request=ContractRenewSerializer)
 class ContractRenewAPIView(APIView):
     authentication_classes = [
-        JWTAuthentication,
+        VersionedJWTAuthentication,
     ]
     permission_classes = [
         IsAuthenticated,
@@ -242,7 +242,7 @@ class ContractRenewAPIView(APIView):
 
 class ContractHistoryListAPIView(APIView):
     authentication_classes = [
-        JWTAuthentication,
+        VersionedJWTAuthentication,
     ]
     permission_classes = [
         IsAuthenticated,
@@ -277,7 +277,7 @@ class ContractHistoryListAPIView(APIView):
 # =================== API Key ==============================
 @extend_schema(request=GenerateAPIKeySerializer)
 class GenerateAPIKeyAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -311,7 +311,7 @@ class GenerateAPIKeyAPIView(APIView):
 
 @extend_schema(request=GenerateAPIKeySerializer)
 class RegenerateAPIKeyAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -342,7 +342,7 @@ class RegenerateAPIKeyAPIView(APIView):
 
 
 class RevokeAPIKeyAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request, api_key_id):
@@ -366,7 +366,7 @@ class RevokeAPIKeyAPIView(APIView):
 
 @extend_schema(request=ParameterCreateSerializer)
 class ParameterCreateAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -385,7 +385,7 @@ class ParameterCreateAPIView(APIView):
 
 
 class ParameterListAPIView(generics.ListAPIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = ParameterSerializer
 
@@ -396,7 +396,7 @@ class ParameterListAPIView(generics.ListAPIView):
 
 
 class ParameterDetailAPIView(generics.RetrieveAPIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = ParameterSerializer
     lookup_field = "id"
@@ -413,7 +413,7 @@ class ParameterDetailAPIView(generics.RetrieveAPIView):
 
 @extend_schema(request=AssignParameterSerializer)
 class AssignParameterAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request, contract_id):
@@ -439,7 +439,7 @@ class AssignParameterAPIView(APIView):
 
 
 class RevokeParameterAssignmentAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, contract_id, parameter_id):
@@ -455,7 +455,7 @@ class RevokeParameterAssignmentAPIView(APIView):
 
 @extend_schema(request=ParameterStatusSerializer)
 class ParameterStatusAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [VersionedJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, parameter_id):

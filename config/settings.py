@@ -153,7 +153,8 @@ SPECTACULAR_SETTINGS = {
 REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework_simplejwt.authentication.VersionedJWTAuthentication',
+        'usersapp.authentication.VersionedJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
         # 'rest_framework.permissions.IsAuthenticated',

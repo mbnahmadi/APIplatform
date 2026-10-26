@@ -4,8 +4,43 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import Permission
+from django.contrib.auth.password_validation import validate_password
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.settings import api_settings
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 
 
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token["token_version"] = user.token_version
+        return token
+
+
+class VersionedTokenRefreshSerializer(TokenRefreshSerializer):
+    def validate(self, attrs):
+        try:
+            refresh = RefreshToken(attrs["refresh"])
+        except TokenError:
+            raise InvalidToken("Refresh token is invalid or expired.")
+
+        user_id = refresh.get(api_settings.USER_ID_CLAIM)
+        User = get_user_model()
+
+        user = User.objects.filter(
+            **{api_settings.USER_ID_FIELD: user_id}
+        ).first()
+
+        if (
+            user is None
+            or refresh.get("token_version") != user.token_version
+        ):
+            raise InvalidToken("Refresh token is no longer valid.")
+
+        return super().validate(attrs)
 
 
 class AssignPermissionSerializer(serializers.Serializer):
@@ -128,6 +163,63 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             "last_name",
             "email",
         ]
+
+
+
+class ClientChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(
+        write_only=True,
+        trim_whitespace=False,
+    )
+    new_password = serializers.CharField(
+        write_only=True,
+        trim_whitespace=False,
+    )
+    confirm_new_password = serializers.CharField(
+        write_only=True,
+        trim_whitespace=False,
+    )
+
+    def validate(self, attrs):
+        if attrs["new_password"] != attrs["confirm_new_password"]:
+            raise serializers.ValidationError({
+                "confirm_new_password": "Passwords do not match."
+            })
+
+        user = self.context["user"]
+
+        if not user.check_password(attrs["current_password"]):
+            raise serializers.ValidationError({
+                "current_password": "Current password is incorrect."
+            })
+
+        validate_password(attrs["new_password"], user=user)
+
+        return attrs
+
+
+class AdminChangeClientPasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField(
+        write_only=True,
+        trim_whitespace=False,
+    )
+    confirm_new_password = serializers.CharField(
+        write_only=True,
+        trim_whitespace=False,
+    )
+
+    def validate(self, attrs):
+        if attrs["new_password"] != attrs["confirm_new_password"]:
+            raise serializers.ValidationError({
+                "confirm_new_password": "Passwords do not match."
+            })
+
+        validate_password(
+            attrs["new_password"],
+            user=self.context["user"],
+        )
+
+        return attrs
 
 # class LogoutSerializer(serializers.Serializer):
 #     refresh = serializers.CharField()

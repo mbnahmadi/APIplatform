@@ -18,6 +18,7 @@ class User(AbstractUser):
         default=Role.CLIENT
     )
     email = models.EmailField(unique=True)
+    token_version = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -36,6 +37,8 @@ class User(AbstractUser):
             ("manage_permissions", "Can manage user permissions"),
 
             ("change_user_profile", "Can change user profile"),
+
+            ("change_client_password", "Can change client password"),
         ]
 
     def __str__(self):

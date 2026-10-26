@@ -19,6 +19,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+
 from .views import (
     LoginAPIView,
     UserListAPIView, 
@@ -29,11 +30,15 @@ from .views import (
     UserPermissionDeleteAPIView,
     UserRetrieveAPIView,
     UserUpdateAPIView,
-    UserStatusAPIView
+    UserStatusAPIView,
+    LogoutAPIView
 )
 
 urlpatterns = [
     path("auth/login/", LoginAPIView.as_view(), name='login'),
+    path("auth/login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("logout/", LogoutAPIView.as_view(), name="logout"),
+
     path("users/", UserListAPIView.as_view(), name='retrieve-users'),
     path("users/<int:user_id>/", UserRetrieveAPIView.as_view(), name="user-retrieve"),
     path("users/create/", UserCreateAPIView.as_view(), name="user-create"),

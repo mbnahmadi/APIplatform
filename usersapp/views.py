@@ -8,10 +8,12 @@ from .serializers import (
     UserUpdateSerializer, 
     UserStatusSerializer,
     UserRoleSerializer,
+    LogoutSerializer
     )
 from .permissions import IsAdminUser, CanViewUsers, CanManagePermissions
 from .service.assign_permissions import AssignPermissionService
 from .service.change_user_role import ChangeUserRoleService
+from .service.logout import LogoutService
 # from .service.api_token import GenerateApiKeyService
 
 from django.contrib.auth import get_user_model
@@ -249,7 +251,23 @@ class LoginAPIView(APIView):
             return Response(token, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        
+
+class LogoutAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = LogoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        result = LogoutService(
+            refresh_token=serializer.validated_data["refresh"]
+        ).execute()
+
+        return Response(result, status=status.HTTP_200_OK)
+
+
+
 
 class UserListAPIView(APIView):
 

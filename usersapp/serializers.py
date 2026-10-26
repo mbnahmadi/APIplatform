@@ -96,6 +96,12 @@ class UserRoleSerializer(serializers.Serializer):
     role = serializers.ChoiceField(
         choices=User.Role.choices
     )
+
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+
 # class LogoutSerializer(serializers.Serializer):
 #     refresh = serializers.CharField()
 

@@ -10,6 +10,7 @@ from .views import (
     ContractHistoryListAPIView,
     GenerateAPIKeyAPIView,
     RegenerateAPIKeyAPIView,
+    RevokeAPIKeyAPIView,
     ParameterCreateAPIView,
     ParameterListAPIView,
     ParameterDetailAPIView,
@@ -31,6 +32,7 @@ urlpatterns = [
 
     path("api-key/generate/", GenerateAPIKeyAPIView.as_view(), name="generate-apikey"),
     path("api-key/regenerate/", RegenerateAPIKeyAPIView.as_view(), name="regenerate-apikey"),
+    path( "api-keys/<int:api_key_id>/revoke/", RevokeAPIKeyAPIView.as_view(), name="revoke-api-key"),
 
     path("parameters/", ParameterCreateAPIView.as_view(), name="parameter-create"),
     path("parameters/", ParameterListAPIView.as_view(), name="parameter-list"),
